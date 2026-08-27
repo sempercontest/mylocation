@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Insert Location Data into Google Sheets</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      width: 100%;
+      max-width: 480px;
+      padding: 32px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    h2 {
+      text-align: center;
+      color: #1a73e8;
+      margin-bottom: 8px;
+      font-size: 1.5rem;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 24px;
+    }
+    label {
+      display: block;
+      margin-top: 16px;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #333;
+      font-size: 0.9rem;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #dadce0;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border 0.2s;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 3px rgba(26,115,232,0.15);
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+    }
+    button {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-primary {
+      background: #1a73e8;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #1557b0;
+    }
+    .btn-primary:disabled {
+      background: #a0c3ff;
+      cursor: not-allowed;
+    }
+    .btn-location {
+      background: #34a853;
+      color: white;
+    }
+    .btn-location:hover {
+      background: #2d8e47;
+    }
+    #response {
+      margin-top: 20px;
+      padding: 14px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 500;
+      display: none;
+    }
+    .success {
+      background: #e6f4ea;
+      color: #137333;
+      border: 1px solid #ceead6;
+    }
+    .error {
+      background: #fce8e6;
+      color: #c5221f;
+      border: 1px solid #f5c6cb;
+    }
+    .info {
+      background: #e8f0fe;
+      color: #1967d2;
+      border: 1px solid #d2e3fc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>📍 Location Data Entry</h2>
+    <p class="subtitle">Sends data to your Google Sheet</p>
+
+    <form id="dataForm">
+      <label for="UserId">User ID</label>
+      <input type="text" id="UserId" name="UserId" value="1" required>
+
+      <label for="Lat">Latitude</label>
+      <input type="number" id="Lat" name="Lat" step="any" placeholder="e.g. 28.6139" required>
+
+      <label for="Lon">Longitude</label>
+      <input type="number" id="Lon" name="Lon" step="any" placeholder="e.g. 77.2090" required>
+
+      <label for="TimeStamp">TimeStamp</label>
+      <input type="datetime-local" id="TimeStamp" name="TimeStamp">
+
+      <label for="Notes">Notes</label>
+      <textarea id="Notes" name="Notes" placeholder="Any additional notes..."></textarea>
+
+      <div class="btn-row">
+        <button type="button" class="btn-location" onclick="getCurrentLocation()">
+          📍 Use My Location
+        </button>
+        <button type="submit" class="btn-primary" id="submitBtn">
+          Submit
+        </button>
+      </div>
+    </form>
+
+    <div id="response"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('dataForm');
+    const responseDiv = document.getElementById('response');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Your Web App URL
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-vZPODyBnRpae10QlnwH0J4iV6FTJf3LpZHfGP-MvNFoQLcJIkt6NjkgmngbrqHXT/exec';
+
+    // ===== Set default current date & time on page load =====
+    function setDefaultTimestamp() {
+      const now = new Date();
+      // Format required by datetime-local: YYYY-MM-DDTHH:MM
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+
+      document.getElementById('TimeStamp').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+
+    // Call on page load
+    setDefaultTimestamp();
+
+    // ===== Get real GPS location =====
+    function getCurrentLocation() {
+      if (!navigator.geolocation) {
+        showMessage('error', 'Geolocation is not supported by this browser.');
+        return;
+      }
+
+      showMessage('info', 'Getting your location...');
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          document.getElementById('Lat').value = position.coords.latitude.toFixed(6);
+          document.getElementById('Lon').value = position.coords.longitude.toFixed(6);
+          showMessage('success', '✅ Location captured successfully!');
+        },
+        (error) => {
+          let msg = 'Unable to get location. ';
+          if (error.code === error.PERMISSION_DENIED) {
+            msg += 'Please allow location permission in your browser.';
+          } else {
+            msg += error.message;
+          }
+          showMessage('error', '❌ ' + msg);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0
+        }
+      );
+    }
+
+    function showMessage(type, text) {
+      responseDiv.style.display = 'block';
+      responseDiv.className = type;
+      responseDiv.innerHTML = text;
+    }
+
+    // ===== Submit form =====
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      submitBtn.disabled = true;
+      showMessage('info', 'Submitting data...');
+
+      const formData = new FormData(form);
+
+      // Convert datetime-local to ISO string
+      if (formData.get('TimeStamp')) {
+        formData.set('TimeStamp', new Date(formData.get('TimeStamp')).toISOString());
+      } else {
+        formData.set('TimeStamp', new Date().toISOString());
+      }
+
+      try {
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.result === 'success') {
+          showMessage('success', '✅ ' + result.message);
+          form.reset();
+          // Restore defaults after reset
+          document.getElementById('UserId').value = '1';
+          setDefaultTimestamp();
+        } else {
+          showMessage('error', '❌ ' + result.message);
+        }
+      } catch (error) {
+        // Google Apps Script often throws network error even when data is saved
+        showMessage('success', '✅ Data submitted (check the sheet)');
+        form.reset();
+        document.getElementById('UserId').value = '1';
+        setDefaultTimestamp();
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
