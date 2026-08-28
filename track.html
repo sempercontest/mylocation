@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Location Tracker</title>
+
+  <!-- Orion Theme fonts + CSS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="orion-theme.css" rel="stylesheet">
+
+  <style>
+    body {
+      background: var(--surface-subtle);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-5);
+    }
+    .tracker-card {
+      width: 100%;
+      max-width: 480px;
+      background: var(--surface);
+      border: 1px solid var(--color-border-light);
+      border-radius: var(--radius-2xl);
+      box-shadow: var(--shadow-raised);
+      overflow: hidden;
+    }
+    .tracker-card .accent-bar {
+      height: 4px;
+    }
+    .tracker-body {
+      padding: var(--space-5);
+    }
+    .status-box {
+      margin-top: var(--space-5);
+      padding: var(--space-4);
+      background: var(--surface-subtle);
+      border: 1px solid var(--color-border-light);
+      border-radius: var(--radius-lg);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .status-box strong {
+      color: var(--color-text-dark);
+    }
+    .status-running {
+      color: var(--status-success);
+      font-weight: 600;
+    }
+    .status-stopped {
+      color: var(--color-text-muted);
+      font-weight: 600;
+    }
+    .btn-row {
+      display: flex;
+      gap: var(--space-3);
+      margin-top: var(--space-4);
+    }
+    .btn-row .btn {
+      flex: 1;
+    }
+  </style>
+</head>
+<body class="bg-soft">
+
+  <div class="tracker-card">
+    <div class="accent-bar"></div>
+
+    <div class="tracker-body">
+      <h2 class="text-primary" style="margin-bottom: 4px;">📍 Location Tracker</h2>
+      <p class="text-muted text-caption" style="margin-bottom: var(--space-5);">
+        Auto-sends live location every 2 minutes
+      </p>
+
+      <!-- User dropdown -->
+      <div class="field">
+        <label for="userSelect">Select User</label>
+        <select id="userSelect" class="select" required>
+          <option value="">Loading users...</option>
+        </select>
+      </div>
+
+      <!-- Optional Notes -->
+      <div class="field">
+        <label for="Notes">Notes (optional)</label>
+        <input type="text" id="Notes" class="input" placeholder="e.g. Field visit">
+      </div>
+
+      <!-- Start / Stop buttons -->
+      <div class="btn-row">
+        <button type="button" id="startBtn" class="btn btn--primary" onclick="startTracking()">
+          ▶ Start
+        </button>
+        <button type="button" id="stopBtn" class="btn btn--outline" onclick="stopTracking()" disabled>
+          ⏹ Stop
+        </button>
+      </div>
+
+      <!-- Live Status -->
+      <div class="status-box" id="statusBox">
+        <div><strong>Location:</strong> <span id="statusLocation">—</span></div>
+        <div><strong>Date & Time:</strong> <span id="statusTime">—</span></div>
+        <div><strong>Timer Status:</strong> <span id="statusTimer" class="status-stopped">Stopped</span></div>
+      </div>
+
+      <!-- Message area -->
+      <div id="message" style="margin-top: var(--space-4); display: none;"></div>
+    </div>
+  </div>
+
+  <script>
+    // ⚠️ Your Web App URL
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-vZPODyBnRpae10QlnwH0J4iV6FTJf3LpZHfGP-MvNFoQLcJIkt6NjkgmngbrqHXT/exec';
+	const USERS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMlHpsVVnN46gqg9yMY2w6FzUoIIGOjYNWz7yzSfVhDC5-h83syMjiQwjuYFfeIrQ9/exec';
+
+    let trackingInterval = null;
+    let isTracking = false;
+
+    // ===== Load users from Sheet2 =====
+    async function loadUsers() {
+	  const select = document.getElementById('userSelect');
+	  try {
+	    const res = await fetch(USERS_SCRIPT_URL);   // ← using the new separate URL
+	    const result = await res.json();
+
+	    if (result.result === 'success' && result.users.length > 0) {
+	      select.innerHTML = '<option value="">-- Select User --</option>';
+	      result.users.forEach(user => {
+	        const opt = document.createElement('option');
+	        opt.value = user.UserId;
+	        opt.textContent = `${user.Name} (${user.UserId})`;
+	        select.appendChild(opt);
+	      });
+	    } else {
+	      select.innerHTML = '<option value="">No users found in Sheet2</option>';
+	    }
+	  } catch (err) {
+	    select.innerHTML = '<option value="">Failed to load users</option>';
+	    console.error(err);
+	  }
+}
+
+    // ===== Get current GPS location =====
+    function getCurrentPosition() {
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error('Geolocation not supported'));
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({
+            lat: pos.coords.latitude.toFixed(6),
+            lon: pos.coords.longitude.toFixed(6)
+          }),
+          (err) => reject(err),
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
+      });
+    }
+
+    // ===== Send one location record =====
+    async function sendLocation(lat, lon) {
+      const userId = document.getElementById('userSelect').value;
+      const notes  = document.getElementById('Notes').value || 'Auto tracked';
+
+      const formData = new FormData();
+      formData.append('UserId', userId);
+      formData.append('Lat', lat);
+      formData.append('Lon', lon);
+      formData.append('TimeStamp', new Date().toISOString());
+      formData.append('Notes', notes);
+
+      try {
+        await fetch(SCRIPT_URL, { method: 'POST', body: formData });
+        return true;
+      } catch (err) {
+        // Google Apps Script often throws network error even when data is saved
+        return true;
+      }
+    }
+
+    // ===== Update status display =====
+    function updateStatus(lat, lon, isRunning) {
+      document.getElementById('statusLocation').textContent = lat && lon ? `${lat}, ${lon}` : '—';
+      document.getElementById('statusTime').textContent = new Date().toLocaleString();
+
+      const timerEl = document.getElementById('statusTimer');
+      if (isRunning) {
+        timerEl.textContent = 'Running (every 2 min)';
+        timerEl.className = 'status-running';
+      } else {
+        timerEl.textContent = 'Stopped';
+        timerEl.className = 'status-stopped';
+      }
+    }
+
+    // ===== Show temporary message =====
+    function showMessage(type, text) {
+      const el = document.getElementById('message');
+      el.style.display = 'block';
+      el.className = `banner banner--${type}`;
+      el.innerHTML = text;
+    }
+
+    // ===== START Tracking =====
+    async function startTracking() {
+      const userId = document.getElementById('userSelect').value;
+      if (!userId) {
+        showMessage('error', 'Please select a user first');
+        return;
+      }
+
+      if (isTracking) return;
+
+      try {
+        showMessage('info', 'Getting current location...');
+        const pos = await getCurrentPosition();
+
+        // Send first location immediately
+        await sendLocation(pos.lat, pos.lon);
+        updateStatus(pos.lat, pos.lon, true);
+        showMessage('success', 'Tracking started. Location sent.');
+
+        isTracking = true;
+        document.getElementById('startBtn').disabled = true;
+        document.getElementById('stopBtn').disabled = false;
+        document.getElementById('userSelect').disabled = true;
+
+        // Send every 2 minutes (120000 ms)
+        trackingInterval = setInterval(async () => {
+          try {
+            const newPos = await getCurrentPosition();
+            await sendLocation(newPos.lat, newPos.lon);
+            updateStatus(newPos.lat, newPos.lon, true);
+            showMessage('success', 'Location updated & sent');
+          } catch (err) {
+            showMessage('warning', 'Could not get location this cycle');
+          }
+        }, 120000); // 2 minutes
+
+      } catch (err) {
+        showMessage('error', 'Unable to get location. Please allow permission.');
+        console.error(err);
+      }
+    }
+
+    // ===== STOP Tracking =====
+    function stopTracking() {
+      if (trackingInterval) {
+        clearInterval(trackingInterval);
+        trackingInterval = null;
+      }
+      isTracking = false;
+
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('stopBtn').disabled = true;
+      document.getElementById('userSelect').disabled = false;
+
+      updateStatus(null, null, false);
+      showMessage('info', 'Tracking stopped');
+    }
+
+    // Load users when page opens
+    loadUsers();
+  </script>
+</body>
+</html>
