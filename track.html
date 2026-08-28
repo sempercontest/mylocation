@@ -167,11 +167,16 @@
       const userId = document.getElementById('userSelect').value;
       const notes  = document.getElementById('Notes').value || 'Auto tracked';
 
+	  const now = new Date();
+	  const date = now.toLocaleDateString("en-IN");
+	  const time = now.toLocaleTimeString("en-IN");
+	  const timestamp = date + " " + time;
+
       const formData = new FormData();
       formData.append('UserId', userId);
       formData.append('Lat', lat);
       formData.append('Lon', lon);
-      formData.append('TimeStamp', new Date().toISOString());
+      formData.append('TimeStamp', timestamp);
       formData.append('Notes', notes);
 
       try {
