@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================================
+   Orion Theme v1.0 — portable stylesheet (inlined from theme.css)
+   ============================================================================ */
+:root {
+  --color-primary: #00416f;
+  --color-accent-blue: #002c4a;
+  --color-text-blue: #005794;
+  --color-accent-orange: #f58c26;
+  --color-text-dark: #001625;
+  --color-text-muted: #6b7280;
+  --color-text-placeholder: #9aa5b3;
+  --surface: #ffffff;
+  --surface-subtle: #f2f7fa;
+  --surface-inverse: #0b2a45;
+  --color-border-light: #d7dddf;
+  --border-inverse: rgba(255, 255, 255, 0.12);
+  --status-danger: #a52834;
+  --status-success: #16a34a;
+  --status-danger-bg: #fdecea;
+  --status-success-bg: #ecfdf3;
+  --radius-sm: 4px; --radius-md: 6px; --radius-lg: 8px; --radius-xl: 10px; --radius-2xl: 14px; --radius-pill: 20px; --radius-circle: 50%;
+  --shadow-focus: 0 0 0 2px rgba(0, 38, 62, 0.12);
+  --shadow-raised: 0 2px 10px rgba(0, 38, 62, 0.08);
+  --shadow-menu: 0 8px 24px rgba(0, 38, 62, 0.12);
+  --shadow-drawer: 4px 0 24px rgba(0, 0, 0, 0.3);
+  --focus-ring: 3px solid rgba(0, 65, 111, 0.35);
+  --scrim: rgba(0, 0, 0, 0.5);
+  --ease: ease; --dur-fast: 0.15s; --dur-medium: 0.18s; --dur-slow: 0.2s; --dur-drawer: 0.25s;
+  --font-sans: Inter, "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px;
+  --sidebar-width: 260px;
+}
+* , *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; font-family: var(--font-sans); font-size: 13px; line-height: 1.6; color: var(--color-text-dark); background: var(--surface); -webkit-font-smoothing: antialiased; }
+h1,h2,h3 { margin: 0 0 var(--space-2); line-height: 1.35; font-weight: 600; }
+h1 { font-size: 20px; font-weight: 700; }
+:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+.app-shell { display: flex; height: 100vh; overflow: hidden; }
+.app-shell__content { flex: 1; min-width: 0; overflow: hidden; display: flex; flex-direction: column; }
+.page { display: flex; flex-direction: column; height: 100%; padding: 16px 20px; overflow: hidden; }
+.page > .page__header { flex: none; }
+.page__body { flex: 1; min-height: 0; display: flex; gap: var(--space-4); overflow: hidden; }
+.page__main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+.page__header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding-bottom: var(--space-3); border-bottom: 1px solid var(--color-border-light); margin-bottom: var(--space-3); }
+
+.accent-bar { height: 4px; border-radius: var(--radius-2xl) var(--radius-2xl) 0 0; background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-text-blue) 62%, var(--color-accent-orange) 100%); }
+
+/* Sidebar / left menu */
+.sidebar { flex: 0 0 var(--sidebar-width); width: var(--sidebar-width); height: 100vh; padding: 20px 12px 18px; display: flex; flex-direction: column; background: var(--surface-inverse); color: #fff; overflow: hidden; }
+.sidebar__title { display: flex; align-items: center; gap: 8px; padding: 0 8px 14px; font-size: 16px; font-weight: 700; }
+.sidebar__add { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; margin-bottom: 6px; font: 600 14px/1.4 var(--font-sans); color: var(--color-accent-orange); text-align: left; background: rgba(255,255,255,0.06); border: 1px dashed rgba(245,140,38,0.5); border-radius: var(--radius-lg); cursor: pointer; }
+.sidebar__add:hover { background: rgba(255,255,255,0.12); }
+.sidebar__divider { height: 1px; margin: 10px 0; background: var(--border-inverse); }
+.sidebar__list { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+.sidebar__item { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; padding: 9px 12px; font: 500 13px/1.4 var(--font-sans); color: #fff; text-align: left; background: none; border: 0; border-radius: var(--radius-lg); cursor: pointer; }
+.sidebar__item:hover { background: rgba(255,255,255,0.08); }
+.sidebar__item--active { background: #fff; color: var(--surface-inverse); }
+.sidebar__item--active .sidebar__item-date { color: var(--color-text-muted); }
+.sidebar__item-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.sidebar__item-date { font-size: 11px; color: rgba(255,255,255,0.65); }
+.sidebar__empty { padding: 12px; font-size: 12px; color: rgba(255,255,255,0.6); }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 40px; padding: 0 16px; font: 600 14px/1 var(--font-sans); color: var(--color-text-dark); background: transparent; border: 1px solid transparent; border-radius: var(--radius-lg); cursor: pointer; white-space: nowrap; transition: background var(--dur-fast) var(--ease); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn--primary { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+.btn--primary:hover:not(:disabled) { background: var(--color-accent-blue); }
+.btn--outline { border-color: var(--color-border-light); }
+.btn--outline:hover:not(:disabled) { background: var(--surface-subtle); }
+.btn--sm { height: 32px; padding: 0 12px; font-size: 12px; }
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; color: var(--color-text-dark); background: none; border: 0; border-radius: var(--radius-md); cursor: pointer; }
+.icon-btn:hover { background: var(--surface-subtle); }
+
+/* Form */
+.field { margin-bottom: var(--space-4); }
+.field > label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: var(--color-text-muted); }
+.input { width: 100%; height: 42px; padding: 0 14px; font: 400 15px/1.5 var(--font-sans); color: var(--color-text-dark); background: var(--surface); border: 1px solid var(--color-border-light); border-radius: var(--radius-lg); outline: none; }
+.input:focus { border-color: var(--color-primary); box-shadow: var(--shadow-focus); }
+
+/* Notes textarea — gray-based dark theme, per spec */
+.textarea-dark {
+  width: 100%; flex: 1; min-height: 260px; resize: vertical;
+  padding: 14px 16px;
+  font: 400 14px/1.6 var(--font-sans);
+  color: #e7e9ea;
+  background: #2b2e33;
+  border: 1px solid #45494f;
+  border-radius: var(--radius-lg);
+  outline: none;
+}
+.textarea-dark::placeholder { color: #8a8f96; }
+.textarea-dark:focus { border-color: var(--color-accent-orange); box-shadow: 0 0 0 2px rgba(245,140,38,0.25); }
+
+.empty { flex: 1; display: flex; align-items: center; justify-content: center; padding: var(--space-6); font-size: 14px; text-align: center; color: var(--color-text-muted); }
+.editor { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.editor__meta { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-2); }
+.editor__date { font-size: 12px; color: var(--color-text-muted); }
+.editor__footer { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-3); }
+.status { font-size: 12px; margin-left: auto; padding-top: 10px; color: var(--color-text-muted); }
+.status--ok { color: var(--status-success); }
+.status--err { color: var(--status-danger); }
+
+.menu-toggle { display: none; }
+.backdrop { display: none; position: fixed; inset: 0; z-index: 90; background: var(--scrim); }
+
+@media (max-width: 900px) {
+  .app-shell { height: auto; display: block; overflow: visible; }
+  .page { height: auto; overflow: visible; padding: var(--space-3); }
+  .textarea-dark { min-height: 220px; }
+  .sidebar {
+    position: fixed; z-index: 95; top: 0; left: 0;
+    transform: translateX(-100%);
+    transition: transform var(--dur-drawer) var(--ease);
+    box-shadow: var(--shadow-drawer);
+  }
+  .sidebar--open { transform: translateX(0); }
+  .backdrop--open { display: block; }
+  .menu-toggle { display: inline-flex; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <div class="backdrop" id="backdrop"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__title">📒 Notes</div>
+    <button class="sidebar__add" id="addBtn">+ Add New Notes</button>
+    <div class="sidebar__divider"></div>
+    <div class="sidebar__list" id="list"></div>
+  </aside>
+
+  <div class="app-shell__content">
+    <div class="accent-bar"></div>
+    <div class="page">
+      <div class="page__header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <button class="icon-btn menu-toggle" id="menuToggle" title="Menu">☰</button>
+          <h1 id="headerTitle">Notes</h1>
+        </div>
+        <span class="status" id="status"></span>
+      </div>
+      <div id="errorBanner" style="display:none; margin-bottom:12px; padding:10px 14px; font-size:13px; border-radius:8px; background:#fdecea; color:#a52834; border:1px solid #fda29b;"></div>
+      <div class="page__body">
+        <div class="page__main" id="main">
+          <div class="empty">Select a note on the left, or add a new one.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  var listEl = document.getElementById('list');
+  var mainEl = document.getElementById('main');
+  var headerTitle = document.getElementById('headerTitle');
+  var statusEl = document.getElementById('status');
+  var sidebarEl = document.getElementById('sidebar');
+  var backdropEl = document.getElementById('backdrop');
+  var errorBannerEl = document.getElementById('errorBanner');
+
+  function showBanner(msg) {
+    console.error(msg);
+    errorBannerEl.textContent = msg;
+    errorBannerEl.style.display = 'block';
+  }
+
+  var ROWS = [];
+  var selectedSeq = null;   // seqNum of the note being viewed
+  var isAdding = false;
+
+  // Your deployed Apps Script web app URL. If you ever redeploy as a NEW
+  // deployment (not "manage deployments > new version"), the URL changes
+  // and you must update it here.
+  var BASE_URL = 'https://script.google.com/macros/s/AKfycbzP_Ns5-KbixJj120rtKaMocV3rZ8vy6YDK5nYW0QnM63dQz2qvpQ0mKMYre73sAA0/exec';
+
+  function loadRows() {
+    listEl.innerHTML = '<div class="sidebar__empty">Loading notes...</div>';
+    fetch(BASE_URL + '?action=list')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data.ok) { showBanner('Could not load notes: ' + data.error); return; }
+        ROWS = data.rows;
+        renderList();
+      })
+      .catch(function (err) { showBanner('Could not reach the Apps Script backend: ' + err); });
+  }
+
+  function sortRows(rows) {
+    return rows.slice().sort(function (a, b) {
+      return new Date(b.dateAndTime) - new Date(a.dateAndTime);
+    });
+  }
+
+  function renderList() {
+    ROWS = sortRows(ROWS);
+    listEl.innerHTML = '';
+    if (ROWS.length === 0) {
+      var e = document.createElement('div');
+      e.className = 'sidebar__empty';
+      e.textContent = 'No notes yet.';
+      listEl.appendChild(e);
+      return;
+    }
+    ROWS.forEach(function (row) {
+      var item = document.createElement('button');
+      item.className = 'sidebar__item' + (String(row.seqNum) === String(selectedSeq) && !isAdding ? ' sidebar__item--active' : '');
+      item.innerHTML =
+        '<span class="sidebar__item-name"></span>' +
+        '<span class="sidebar__item-date"></span>';
+      item.querySelector('.sidebar__item-name').textContent = row.name || 'Untitled';
+      item.querySelector('.sidebar__item-date').textContent = row.dateDisplay || '';
+      item.addEventListener('click', function () { selectNote(row.seqNum); });
+      listEl.appendChild(item);
+    });
+  }
+
+  function closeSidebarOnMobile() {
+    sidebarEl.classList.remove('sidebar--open');
+    backdropEl.classList.remove('backdrop--open');
+  }
+
+  function selectNote(seqNum) {
+    isAdding = false;
+    selectedSeq = seqNum;
+    var row = ROWS.find(function (r) { return String(r.seqNum) === String(seqNum); });
+    if (!row) return;
+    headerTitle.textContent = row.name || 'Untitled';
+    renderList();
+    closeSidebarOnMobile();
+
+    mainEl.innerHTML =
+      '<div class="editor">' +
+        '<div class="editor__meta"><span class="editor__date">' + escapeHtml(row.dateDisplay || '') + '</span></div>' +
+        '<textarea class="textarea-dark" id="notesField" placeholder="Write your notes here...">' + escapeHtml(row.notes || '') + '</textarea>' +
+        '<div class="editor__footer"><button class="btn btn--primary" id="saveBtn">Save changes</button></div>' +
+      '</div>';
+
+    document.getElementById('saveBtn').addEventListener('click', function () {
+      var notes = document.getElementById('notesField').value;
+      saveUpdate(row.seqNum, notes);
+    });
+  }
+
+  function showAddForm() {
+    isAdding = true;
+    selectedSeq = null;
+    headerTitle.textContent = 'Add New Note';
+    renderList();
+    closeSidebarOnMobile();
+
+    mainEl.innerHTML =
+      '<div class="editor">' +
+        '<div class="field"><label>Name</label>' +
+          '<input class="input" id="nameField" type="text" placeholder="e.g. Meeting notes"></div>' +
+        '<textarea class="textarea-dark" id="notesField" placeholder="Write your notes here..."></textarea>' +
+        '<div class="editor__footer">' +
+          '<button class="btn btn--outline" id="cancelBtn">Cancel</button>' +
+          '<button class="btn btn--primary" id="saveNewBtn">Save note</button>' +
+        '</div>' +
+      '</div>';
+
+    document.getElementById('cancelBtn').addEventListener('click', resetMain);
+    document.getElementById('saveNewBtn').addEventListener('click', function () {
+      var name = document.getElementById('nameField').value.trim();
+      var notes = document.getElementById('notesField').value;
+      if (!name) { setStatus('Please enter a name.', true); return; }
+      saveNew(name, notes);
+    });
+  }
+
+  function resetMain() {
+    isAdding = false;
+    selectedSeq = null;
+    headerTitle.textContent = 'Notes';
+    renderList();
+    mainEl.innerHTML = '<div class="empty">Select a note on the left, or add a new one.</div>';
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function setStatus(msg, isErr) {
+    statusEl.textContent = msg;
+    statusEl.className = 'status' + (isErr ? ' status--err' : ' status--ok');
+    setTimeout(function () { statusEl.textContent = ''; }, 3000);
+  }
+
+  function saveNew(name, notes) {
+    setStatus('Saving...', false);
+    fetch(BASE_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'add', name: name, notes: notes })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data.ok) { showBanner('Save failed: ' + data.error); return; }
+        ROWS = data.rows;
+        setStatus('Note added.', false);
+        var newest = sortRows(ROWS)[0];
+        if (newest) selectNote(newest.seqNum); else resetMain();
+      })
+      .catch(function (err) { showBanner('Save request failed: ' + err); });
+  }
+
+  function saveUpdate(seqNum, notes) {
+    setStatus('Saving...', false);
+    fetch(BASE_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'update', seqNum: seqNum, notes: notes })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data.ok) { showBanner('Save failed: ' + data.error); return; }
+        ROWS = data.rows;
+        setStatus('Saved.', false);
+        renderList();
+      })
+      .catch(function (err) { showBanner('Save request failed: ' + err); });
+  }
+
+  document.getElementById('addBtn').addEventListener('click', showAddForm);
+  document.getElementById('menuToggle').addEventListener('click', function () {
+    sidebarEl.classList.add('sidebar--open');
+    backdropEl.classList.add('backdrop--open');
+  });
+  backdropEl.addEventListener('click', closeSidebarOnMobile);
+
+  loadRows();
+</script>
+</body>
+</html>
